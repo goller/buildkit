@@ -60,7 +60,7 @@ message UsageRecord {
 message SolveRequest {
 	string Ref = 1;
 	pb.Definition Definition = 2;
-	// Depcrecated in favor of Exporters.
+	// Deprecated in favor of Exporters.
 	string Exporter = 3;
 	map<string, string> ExporterAttrs = 4;
 	string Session = 5;
