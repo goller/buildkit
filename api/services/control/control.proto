@@ -35,7 +35,7 @@ message PruneRequest {
 }
 
 message DiskUsageRequest {
-	repeated string filter = 1; 
+	repeated string filter = 1;
 }
 
 message DiskUsageResponse {
@@ -60,6 +60,7 @@ message UsageRecord {
 message SolveRequest {
 	string Ref = 1;
 	pb.Definition Definition = 2;
+	// Depcrecated in favor of Exporters.
 	string Exporter = 3;
 	map<string, string> ExporterAttrs = 4;
 	string Session = 5;
@@ -70,6 +71,8 @@ message SolveRequest {
 	map<string, pb.Definition> FrontendInputs = 10;
 	bool Internal = 11; // Internal builds are not recorded in build history
 	moby.buildkit.v1.sourcepolicy.Policy SourcePolicy = 12;
+
+	repeated string Exporters = 13;
 }
 
 message CacheOptions {
