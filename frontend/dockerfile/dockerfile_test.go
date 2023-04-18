@@ -939,7 +939,7 @@ func testWorkdirCopyIgnoreRelative(t *testing.T, sb integration.Sandbox) {
 	dockerfile := []byte(`
 FROM scratch AS base
 WORKDIR /foo
-COPY Dockerfile / 
+COPY Dockerfile /
 FROM scratch
 # relative path still loaded as absolute
 COPY --from=base Dockerfile .
@@ -3886,7 +3886,7 @@ ONBUILD RUN mkdir -p /out && echo -n 11 >> /out/foo
 	require.NoError(t, err)
 
 	dockerfile = []byte(fmt.Sprintf(`
-	FROM %s 
+	FROM %s
 	`, target))
 
 	dir, err = integration.Tmpdir(
@@ -6562,10 +6562,7 @@ FROM scratch
 COPY --from=0 / /
 `)
 
-	// note that this digest differs from the one in master, due to
-	// commit a89f482dcb3428c0297f39474eebd7de15e4792a not being included
-	// in this branch.
-	const expectedDigest = "sha256:e26093cc8a7524089a1d0136457e6c09a34176e2b2efcf99ac471baa729c7dc9"
+	const expectedDigest = "sha256:4b9a241cddc0b6f415b6d09264749c8abffbca6f7b3c7b0e9970599bd210237e"
 
 	dir, err := integration.Tmpdir(
 		t,
