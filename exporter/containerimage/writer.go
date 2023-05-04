@@ -422,6 +422,7 @@ func (ic *ImageWriter) commitDistributionManifest(ctx context.Context, opts *Ima
 		mfst.Layers = append(mfst.Layers, desc)
 	}
 
+	// DEPOT: Attach all layers to the depot export lease so we can use them to pull the image in the depot client.
 	leaseID, ok := ctx.Value(DepotLeaseKey{}).(string)
 	if ok && leaseID != "" {
 		for _, layer := range mfst.Layers {
