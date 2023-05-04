@@ -26,6 +26,7 @@ import (
 	"github.com/moby/buildkit/session"
 	"github.com/moby/buildkit/snapshot"
 	"github.com/moby/buildkit/solver/result"
+	"github.com/moby/buildkit/util/bklog"
 	"github.com/moby/buildkit/util/compression"
 	"github.com/moby/buildkit/util/contentutil"
 	"github.com/moby/buildkit/util/leaseutil"
@@ -198,7 +199,7 @@ func (e *imageExporterInstance) Config() *exporter.Config {
 	return exporter.NewConfigWithCompression(e.opts.RefCfg.Compression)
 }
 
-// DEPOT:
+// DEPOT: We have a special lease attached to context to inhibit the GC of layers.
 type DepotLeaseKey struct{}
 
 func (e *imageExporterInstance) Export(ctx context.Context, src *exporter.Source, sessionID string) (_ map[string]string, descref exporter.DescriptorReference, err error) {
@@ -216,10 +217,20 @@ func (e *imageExporterInstance) Export(ctx context.Context, src *exporter.Source
 	}
 	opts.Annotations = opts.Annotations.Merge(as)
 
-	lease, err := e.opt.LeaseManager.Create(ctx, leases.WithRandomID(), leases.WithExpiration(time.Hour), leases.WithLabels(map[string]string{
-		depot.ExportLeaseLabel: sessionID,
-	}))
-	ctx = context.WithValue(ctx, DepotLeaseKey{}, lease.ID)
+	// DEPOT: Create the lease that should live long enough for the image load to complete.
+	lease, err := e.opt.LeaseManager.Create(
+		ctx,
+		leases.WithRandomID(),
+		leases.WithExpiration(time.Hour),
+		leases.WithLabels(map[string]string{
+			depot.ExportLeaseLabel: sessionID,
+		}),
+	)
+	if err != nil {
+		bklog.G(ctx).Warnf("Unable to create lease for image export %v", err)
+	} else {
+		ctx = context.WithValue(ctx, DepotLeaseKey{}, lease.ID)
+	}
 
 	ctx, done, err := leaseutil.WithLease(ctx, e.opt.LeaseManager, leaseutil.MakeTemporary)
 	if err != nil {
@@ -375,6 +386,7 @@ func (e *imageExporterInstance) Export(ctx context.Context, src *exporter.Source
 		return nil, nil, err
 	}
 	resp[exptypes.ExporterImageDescriptorKey] = base64.StdEncoding.EncodeToString(dtdesc)
+	// DEPOT: The CLI uses this to delete the lease once the image is loaded.
 	resp[depot.ExportLeaseLabel] = lease.ID
 
 	return resp, nil, nil

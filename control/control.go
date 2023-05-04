@@ -134,6 +134,7 @@ func (c *Controller) Register(server *grpc.Server) {
 	leasesapi.RegisterLeasesServer(server, &LeaseManager{c.opt.LeaseManager})
 }
 
+// DEPOT: This lease manager is used by the CLI to remove image leases after load.
 type LeaseManager struct {
 	manager leases.Manager
 }
