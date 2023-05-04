@@ -20,6 +20,7 @@ import (
 	intoto "github.com/in-toto/in-toto-golang/in_toto"
 	"github.com/moby/buildkit/cache"
 	cacheconfig "github.com/moby/buildkit/cache/config"
+	"github.com/moby/buildkit/depot"
 	"github.com/moby/buildkit/exporter"
 	"github.com/moby/buildkit/exporter/containerimage/exptypes"
 	"github.com/moby/buildkit/session"
@@ -197,6 +198,9 @@ func (e *imageExporterInstance) Config() *exporter.Config {
 	return exporter.NewConfigWithCompression(e.opts.RefCfg.Compression)
 }
 
+// DEPOT:
+type DepotLeaseKey struct{}
+
 func (e *imageExporterInstance) Export(ctx context.Context, src *exporter.Source, sessionID string) (_ map[string]string, descref exporter.DescriptorReference, err error) {
 	if src.Metadata == nil {
 		src.Metadata = make(map[string][]byte)
@@ -211,6 +215,11 @@ func (e *imageExporterInstance) Export(ctx context.Context, src *exporter.Source
 		return nil, nil, err
 	}
 	opts.Annotations = opts.Annotations.Merge(as)
+
+	lease, err := e.opt.LeaseManager.Create(ctx, leases.WithRandomID(), leases.WithExpiration(time.Hour), leases.WithLabels(map[string]string{
+		depot.ExportLeaseLabel: sessionID,
+	}))
+	ctx = context.WithValue(ctx, DepotLeaseKey{}, lease.ID)
 
 	ctx, done, err := leaseutil.WithLease(ctx, e.opt.LeaseManager, leaseutil.MakeTemporary)
 	if err != nil {
@@ -366,6 +375,7 @@ func (e *imageExporterInstance) Export(ctx context.Context, src *exporter.Source
 		return nil, nil, err
 	}
 	resp[exptypes.ExporterImageDescriptorKey] = base64.StdEncoding.EncodeToString(dtdesc)
+	resp[depot.ExportLeaseLabel] = lease.ID
 
 	return resp, nil, nil
 }
