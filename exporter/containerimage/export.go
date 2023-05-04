@@ -47,6 +47,7 @@ const (
 	keyDanglingPrefix = "dangling-name-prefix"
 	keyNameCanonical  = "name-canonical"
 	keyStore          = "store"
+	DepotExportLease  = "depot.export.lease"
 
 	// keyUnsafeInternalStoreAllowIncomplete should only be used for tests. This option allows exporting image to the image store
 	// as well as lacking some blobs in the content store. Some integration tests for lazyref behaviour depends on this option.
@@ -167,6 +168,8 @@ func (e *imageExporter) Resolve(ctx context.Context, opt map[string]string) (exp
 				return nil, errors.Wrapf(err, "non-bool value specified for %s", k)
 			}
 			i.nameCanonical = b
+		case DepotExportLease:
+			i.UseExportLease = true
 		default:
 			if i.meta == nil {
 				i.meta = make(map[string][]byte)
@@ -189,6 +192,7 @@ type imageExporterInstance struct {
 	nameCanonical        bool
 	danglingPrefix       string
 	meta                 map[string][]byte
+	UseExportLease       bool
 }
 
 func (e *imageExporterInstance) Name() string {
@@ -217,19 +221,25 @@ func (e *imageExporterInstance) Export(ctx context.Context, src *exporter.Source
 	}
 	opts.Annotations = opts.Annotations.Merge(as)
 
+	resp := make(map[string]string)
+
 	// DEPOT: Create the lease that should live long enough for the image load to complete.
-	lease, err := e.opt.LeaseManager.Create(
-		ctx,
-		leases.WithRandomID(),
-		leases.WithExpiration(time.Hour),
-		leases.WithLabels(map[string]string{
-			depot.ExportLeaseLabel: sessionID,
-		}),
-	)
-	if err != nil {
-		bklog.G(ctx).Warnf("Unable to create lease for image export %v", err)
-	} else {
-		ctx = context.WithValue(ctx, DepotLeaseKey{}, lease.ID)
+	if e.UseExportLease {
+		lease, err := e.opt.LeaseManager.Create(
+			ctx,
+			leases.WithRandomID(),
+			leases.WithExpiration(time.Hour),
+			leases.WithLabels(map[string]string{
+				depot.ExportLeaseLabel: sessionID,
+			}),
+		)
+		if err != nil {
+			bklog.G(ctx).Warnf("Unable to create lease for image export %v", err)
+		} else {
+			ctx = context.WithValue(ctx, DepotLeaseKey{}, lease.ID)
+			// DEPOT: The CLI uses this to delete the lease once the image is loaded.
+			resp[depot.ExportLeaseLabel] = lease.ID
+		}
 	}
 
 	ctx, done, err := leaseutil.WithLease(ctx, e.opt.LeaseManager, leaseutil.MakeTemporary)
@@ -251,8 +261,6 @@ func (e *imageExporterInstance) Export(ctx context.Context, src *exporter.Source
 			descref = NewDescriptorReference(*desc, done)
 		}
 	}()
-
-	resp := make(map[string]string)
 
 	if n, ok := src.Metadata["image.name"]; e.opts.ImageName == "*" && ok {
 		e.opts.ImageName = string(n)
@@ -386,8 +394,6 @@ func (e *imageExporterInstance) Export(ctx context.Context, src *exporter.Source
 		return nil, nil, err
 	}
 	resp[exptypes.ExporterImageDescriptorKey] = base64.StdEncoding.EncodeToString(dtdesc)
-	// DEPOT: The CLI uses this to delete the lease once the image is loaded.
-	resp[depot.ExportLeaseLabel] = lease.ID
 
 	return resp, nil, nil
 }
