@@ -16,6 +16,7 @@ import (
 	controlapi "github.com/moby/buildkit/api/services/control"
 	"github.com/moby/buildkit/client/connhelper"
 	"github.com/moby/buildkit/depot"
+	gatewayapi "github.com/moby/buildkit/frontend/gateway/pb"
 	"github.com/moby/buildkit/session"
 	"github.com/moby/buildkit/session/grpchijack"
 	"github.com/moby/buildkit/util/appdefaults"
@@ -183,6 +184,10 @@ func (c *Client) ContentClient() contentapi.ContentClient {
 
 func (c *Client) LeasesClient() leasesapi.LeasesClient {
 	return leasesapi.NewLeasesClient(c.conn)
+}
+
+func (c *Client) LLBBridgeClient() gatewayapi.LLBBridgeClient {
+	return gatewayapi.NewLLBBridgeClient(c.conn)
 }
 
 func (c *Client) Dialer() session.Dialer {
