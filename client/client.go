@@ -10,11 +10,13 @@ import (
 	"strings"
 
 	contentapi "github.com/containerd/containerd/api/services/content/v1"
+	leasesapi "github.com/containerd/containerd/api/services/leases/v1"
 	"github.com/containerd/containerd/defaults"
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	controlapi "github.com/moby/buildkit/api/services/control"
 	"github.com/moby/buildkit/client/connhelper"
 	"github.com/moby/buildkit/depot"
+	gatewayapi "github.com/moby/buildkit/frontend/gateway/pb"
 	"github.com/moby/buildkit/session"
 	"github.com/moby/buildkit/session/grpchijack"
 	"github.com/moby/buildkit/util/appdefaults"
@@ -178,6 +180,14 @@ func (c *Client) ControlClient() controlapi.ControlClient {
 
 func (c *Client) ContentClient() contentapi.ContentClient {
 	return contentapi.NewContentClient(c.conn)
+}
+
+func (c *Client) LeasesClient() leasesapi.LeasesClient {
+	return leasesapi.NewLeasesClient(c.conn)
+}
+
+func (c *Client) LLBBridgeClient() gatewayapi.LLBBridgeClient {
+	return gatewayapi.NewLLBBridgeClient(c.conn)
 }
 
 func (c *Client) Dialer() session.Dialer {

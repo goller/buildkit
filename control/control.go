@@ -9,10 +9,12 @@ import (
 	"time"
 
 	contentapi "github.com/containerd/containerd/api/services/content/v1"
+	leasesapi "github.com/containerd/containerd/api/services/leases/v1"
 	"github.com/containerd/containerd/content"
 	"github.com/containerd/containerd/leases"
 	"github.com/containerd/containerd/services/content/contentserver"
 	"github.com/docker/distribution/reference"
+	"github.com/gogo/protobuf/types"
 	"github.com/mitchellh/hashstructure/v2"
 	controlapi "github.com/moby/buildkit/api/services/control"
 	apitypes "github.com/moby/buildkit/api/types"
@@ -129,6 +131,40 @@ func (c *Controller) Register(server *grpc.Server) {
 
 	store := &roContentStore{c.opt.ContentStore}
 	contentapi.RegisterContentServer(server, contentserver.New(store))
+	leasesapi.RegisterLeasesServer(server, &LeaseManager{c.opt.LeaseManager})
+}
+
+// DEPOT: This lease manager is used by the CLI to remove image leases after load.
+type LeaseManager struct {
+	manager leases.Manager
+}
+
+func (m *LeaseManager) Delete(ctx context.Context, req *leasesapi.DeleteRequest) (*types.Empty, error) {
+	err := m.manager.Delete(ctx, leases.Lease{ID: req.ID})
+	if err != nil {
+		return nil, err
+	}
+	return &types.Empty{}, nil
+}
+
+func (*LeaseManager) Create(context.Context, *leasesapi.CreateRequest) (*leasesapi.CreateResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "not yet supported")
+}
+
+func (m *LeaseManager) List(ctx context.Context, req *leasesapi.ListRequest) (*leasesapi.ListResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "not yet supported")
+}
+
+func (m *LeaseManager) AddResource(context.Context, *leasesapi.AddResourceRequest) (*types.Empty, error) {
+	return nil, status.Error(codes.Unimplemented, "not yet supported")
+}
+
+func (m *LeaseManager) DeleteResource(context.Context, *leasesapi.DeleteResourceRequest) (*types.Empty, error) {
+	return nil, status.Error(codes.Unimplemented, "not yet supported")
+}
+
+func (m *LeaseManager) ListResources(ctx context.Context, req *leasesapi.ListResourcesRequest) (*leasesapi.ListResourcesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "not yet supported")
 }
 
 func (c *Controller) DiskUsage(ctx context.Context, r *controlapi.DiskUsageRequest) (*controlapi.DiskUsageResponse, error) {
