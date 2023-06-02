@@ -3,6 +3,7 @@ package solver
 import (
 	"context"
 	"fmt"
+	"log"
 	"sync"
 	"time"
 
@@ -377,6 +378,9 @@ func (jl *Solver) loadUnlocked(v, parent Vertex, j *Job, cache map[Vertex]Vertex
 			solver:       jl,
 			origDigest:   origVtx.Digest(),
 		}
+		if debugScheduler {
+			log.Printf("loadUnlocked %s %v %v", dgst, jl.actives, st)
+		}
 		jl.actives[dgst] = st
 	}
 
@@ -492,6 +496,10 @@ func (jl *Solver) Get(id string) (*Job, error) {
 // called with solver lock
 func (jl *Solver) deleteIfUnreferenced(k digest.Digest, st *state) {
 	if len(st.jobs) == 0 && len(st.parents) == 0 {
+		if debugScheduler {
+			log.Printf("deleteIfUnreferenced %s %v %v", k, jl.actives, st)
+		}
+
 		for chKey := range st.childVtx {
 			chState := jl.actives[chKey]
 			delete(chState.parents, k)
@@ -722,7 +730,7 @@ func (s *sharedOp) CalcSlowCache(ctx context.Context, index Index, p PreprocessF
 		if p != nil {
 			st := s.st.solver.getState(s.st.vtx.Inputs()[index])
 			if st == nil {
-				return nil, errors.Errorf("failed to get state for index %d on %v", index, s.st.vtx.Name())
+				return nil, errors.Errorf("failed to get state for index %d on %v %s", index, s.st.vtx.Name(), s.st.vtx.Digest())
 			}
 			ctx2 := progress.WithProgress(ctx, st.mpw)
 			if st.mspan.Span != nil {
