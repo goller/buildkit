@@ -508,7 +508,6 @@ func (jl *Solver) deleteIfUnreferenced(k digest.Digest, st *state) {
 		st.Release()
 		delete(jl.actives, k)
 	}
-
 }
 
 func (j *Job) Build(ctx context.Context, e Edge) (CachedResultWithProvenance, error) {
@@ -731,7 +730,7 @@ func (s *sharedOp) CalcSlowCache(ctx context.Context, index Index, p PreprocessF
 		if p != nil {
 			st := s.st.solver.getState(s.st.vtx.Inputs()[index])
 			if st == nil {
-				return nil, errors.Errorf("failed to get state for index %d on %v", index, s.st.vtx.Name())
+				return nil, errors.Errorf("failed to get state for index %d on %v %s", index, s.st.vtx.Name(), s.st.vtx.Digest())
 			}
 			ctx2 := progress.WithProgress(ctx, st.mpw)
 			if st.mspan.Span != nil {
