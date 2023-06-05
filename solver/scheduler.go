@@ -163,8 +163,12 @@ func (s *scheduler) dispatch(e *edge) {
 		delete(s.outgoing, e)
 	}
 
+	// DEPOT: Skip merge to on assumption that it is causing inconsistent graph state.
+	// We have the logic inverted here so that we can continue to use the integration tests.
+
 	// if keys changed there might be possiblity for merge with other edge
-	if e.keysDidChange {
+	useMergeTo := os.Getenv("DEPOT_DISABLE_MERGE_TO") != ""
+	if useMergeTo && e.keysDidChange {
 		if k := e.currentIndexKey(); k != nil {
 			// skip this if not at least 1 key per dep
 			origEdge := e.index.LoadOrStore(k, e)
