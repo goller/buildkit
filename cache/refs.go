@@ -1051,8 +1051,10 @@ func (sr *immutableRef) prepareRemoteSnapshotsStargzMode(ctx context.Context, s 
 					if err == nil { // usable as remote snapshot without unlazying.
 						defer func() {
 							// Remove tmp labels appended in this func
-							for k := range tmpLabels {
-								info.Labels[k] = ""
+							if info.Labels != nil {
+								for k := range tmpLabels {
+									info.Labels[k] = ""
+								}
 							}
 							if _, err := r.cm.Snapshotter.Update(ctx, info, tmpFields...); err != nil {
 								logrus.Warn(errors.Wrapf(err,
