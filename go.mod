@@ -157,3 +157,5 @@ require (
 	golang.org/x/text v0.5.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
+
+replace github.com/containerd/stargz-snapshotter => github.com/depot/stargz-snapshotter v0.13.0-depot.1
