@@ -37,7 +37,6 @@ func NewStore(dbPath string) (*Store, error) {
 	}); err != nil {
 		return nil, err
 	}
-	db.NoSync = true
 	return &Store{db: db}, nil
 }
 
