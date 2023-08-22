@@ -14,6 +14,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/feature/s3/manager v1.11.10
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.26.9
 	github.com/aws/smithy-go v1.11.2
+	github.com/bufbuild/connect-go v1.10.0
 	github.com/containerd/console v1.0.3
 	github.com/containerd/containerd v1.6.20
 	github.com/containerd/continuity v0.3.0
@@ -89,7 +90,7 @@ require (
 	golang.org/x/time v0.1.0
 	google.golang.org/genproto v0.0.0-20220706185917-7780775163c4
 	google.golang.org/grpc v1.50.1
-	google.golang.org/protobuf v1.28.1
+	google.golang.org/protobuf v1.31.0
 )
 
 require (
