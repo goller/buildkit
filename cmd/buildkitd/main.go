@@ -248,7 +248,7 @@ func main() {
 
 		// DEPOT: if TLS is configured, make the gRPC server terminate and validate those credentials
 		// so that we get AuthInfo in the gRPC handlers
-		if tlsConfig, err := serverCredentials(cfg.GRPC.TLS); err == nil {
+		if tlsConfig, err := serverCredentials(cfg.GRPC.TLS); err == nil && tlsConfig != nil {
 			opts = append(opts, grpc.Creds(credentials.NewTLS(tlsConfig)))
 		}
 
@@ -354,11 +354,12 @@ func serveGRPC(cfg config.GRPCConfig, server *grpc.Server, errCh chan error) err
 	// if err != nil {
 	// 	return err
 	// }
+	var tlsConfig *tls.Config
 
 	eg, _ := errgroup.WithContext(context.Background())
 	listeners := make([]net.Listener, 0, len(addrs))
 	for _, addr := range addrs {
-		l, err := getListener(addr, *cfg.UID, *cfg.GID, nil)
+		l, err := getListener(addr, *cfg.UID, *cfg.GID, tlsConfig)
 		if err != nil {
 			for _, l := range listeners {
 				l.Close()
