@@ -515,15 +515,15 @@ func (c *Controller) Status(req *controlapi.StatusRequest, stream controlapi.Con
 	})
 
 	eg.Go(func() error {
-		for {
-			var sender *connect.ClientStreamForClient[cloudv3.ReportStatusRequest, cloudv3.ReportStatusResponse]
-			token := os.Getenv("DEPOT_BUILDKIT_TOKEN")
-			if spiffeID != "" && token != "" {
-				depotclient := NewDepotClient()
-				sender = depotclient.ReportStatus(ctx)
-				sender.RequestHeader().Add("Authorization", "Bearer "+token)
-			}
+		var sender *connect.ClientStreamForClient[cloudv3.ReportStatusRequest, cloudv3.ReportStatusResponse]
+		token := os.Getenv("DEPOT_BUILDKIT_TOKEN")
+		if spiffeID != "" && token != "" {
+			depotclient := NewDepotClient()
+			sender = depotclient.ReportStatus(ctx)
+			sender.RequestHeader().Add("Authorization", "Bearer "+token)
+		}
 
+		for {
 			ss, ok := <-ch
 			if !ok {
 				if sender != nil {
