@@ -10,7 +10,6 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/bufbuild/connect-go"
 	contentapi "github.com/containerd/containerd/api/services/content/v1"
 	leasesapi "github.com/containerd/containerd/api/services/leases/v1"
 	"github.com/containerd/containerd/content"
@@ -503,6 +502,8 @@ func (c *Controller) Status(req *controlapi.StatusRequest, stream controlapi.Con
 			spiffeID = tlsInfo.SPIFFEID.String()
 		}
 	}
+	statusCh := make(chan *client.SolveStatus, 1024)
+	token := os.Getenv("DEPOT_BUILDKIT_TOKEN")
 
 	if err := sendTimestampHeader(stream); err != nil {
 		return err
@@ -514,45 +515,67 @@ func (c *Controller) Status(req *controlapi.StatusRequest, stream controlapi.Con
 		return c.solver.Status(ctx, req.Ref, ch)
 	})
 
-	eg.Go(func() error {
-		var sender *connect.ClientStreamForClient[cloudv3.ReportStatusRequest, cloudv3.ReportStatusResponse]
-		token := os.Getenv("DEPOT_BUILDKIT_TOKEN")
-		if spiffeID != "" && token != "" {
-			depotclient := NewDepotClient()
-			sender = depotclient.ReportStatus(ctx)
-			sender.RequestHeader().Add("Authorization", "Bearer "+token)
+	go func() {
+		if spiffeID == "" || token == "" {
+			return
 		}
+
+		sender := NewDepotClient().ReportStatus(ctx)
+		sender.RequestHeader().Add("Authorization", "Bearer "+token)
+		defer func() {
+			_, _ = sender.CloseAndReceive()
+		}()
+
+		for ss := range ch {
+			for _, sr := range ss.Marshal() {
+				stableDigests := make(map[string]string, len(sr.Vertexes))
+				for _, v := range sr.Vertexes {
+					stableDigests[v.Digest.String()] = v.StableDigest.String()
+				}
+				req := &cloudv3.ReportStatusRequest{
+					SpiffeId:      spiffeID,
+					Status:        sr,
+					StableDigests: stableDigests,
+				}
+
+				attempts := 0
+				for {
+					attempts += 1
+					err := sender.Send(req)
+					if err == nil {
+						break
+					}
+
+					if attempts > 10 {
+						bklog.G(ctx).WithError(err).Errorf("unable to send status to API, giving up")
+						return
+					}
+
+					bklog.G(ctx).WithError(err).Errorf("unable to send status to API, retrying")
+					time.Sleep(100 * time.Millisecond)
+					_, _ = sender.CloseAndReceive()
+					sender = NewDepotClient().ReportStatus(ctx)
+					sender.RequestHeader().Add("Authorization", "Bearer "+token)
+				}
+			}
+		}
+		return
+	}()
+
+	eg.Go(func() error {
+		defer close(statusCh)
 
 		for {
 			ss, ok := <-ch
 			if !ok {
-				if sender != nil {
-					_, err := sender.CloseAndReceive()
-					if err != nil {
-						bklog.G(ctx).WithError(err).Errorf("unable to close status sender")
-					}
-				}
-
 				return nil
 			}
+
+			statusCh <- ss
 
 			for _, sr := range ss.Marshal() {
 				if err := stream.SendMsg(sr); err != nil {
 					return err
-				}
-				if sender != nil {
-					stableDigests := make(map[string]string, len(sr.Vertexes))
-					for _, v := range sr.Vertexes {
-						stableDigests[v.Digest.String()] = v.StableDigest.String()
-					}
-					req := &cloudv3.ReportStatusRequest{
-						SpiffeId:      spiffeID,
-						Status:        sr,
-						StableDigests: stableDigests,
-					}
-					if err := sender.Send(req); err != nil {
-						bklog.G(ctx).WithError(err).Errorf("unable to send status to API")
-					}
 				}
 			}
 		}
