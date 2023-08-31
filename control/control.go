@@ -540,7 +540,7 @@ func (c *Controller) Status(req *controlapi.StatusRequest, stream controlapi.Con
 
 				attempts := 0
 				for {
-					attempts += 1
+					attempts++
 					err := sender.Send(req)
 					if err == nil {
 						break
@@ -559,7 +559,6 @@ func (c *Controller) Status(req *controlapi.StatusRequest, stream controlapi.Con
 				}
 			}
 		}
-		return
 	}()
 
 	eg.Go(func() error {
