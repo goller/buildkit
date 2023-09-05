@@ -502,7 +502,7 @@ func (c *Controller) Status(req *controlapi.StatusRequest, stream controlapi.Con
 			spiffeID = tlsInfo.SPIFFEID.String()
 		}
 	}
-	statusCh := make(chan *client.SolveStatus, 1024)
+	statusCh := make(chan client.SolveStatus, 1024)
 	token := os.Getenv("DEPOT_BUILDKIT_TOKEN")
 
 	if err := sendTimestampHeader(stream); err != nil {
@@ -571,11 +571,8 @@ func (c *Controller) Status(req *controlapi.StatusRequest, stream controlapi.Con
 			}
 
 			// DEPOT: we need to make a copy because ss.Marshal() mutates the SolveStatus
-			statusCh <- &client.SolveStatus{
-				Vertexes: ss.Vertexes,
-				Statuses: ss.Statuses,
-				Logs:     ss.Logs,
-				Warnings: ss.Warnings,
+			if ss != nil {
+				statusCh <- *ss
 			}
 
 			for _, sr := range ss.Marshal() {
