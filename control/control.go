@@ -570,7 +570,13 @@ func (c *Controller) Status(req *controlapi.StatusRequest, stream controlapi.Con
 				return nil
 			}
 
-			statusCh <- ss
+			// DEPOT: we need to make a copy because ss.Marshal() mutates the SolveStatus
+			statusCh <- &client.SolveStatus{
+				Vertexes: ss.Vertexes,
+				Statuses: ss.Statuses,
+				Logs:     ss.Logs,
+				Warnings: ss.Warnings,
+			}
 
 			for _, sr := range ss.Marshal() {
 				if err := stream.SendMsg(sr); err != nil {
