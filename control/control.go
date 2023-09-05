@@ -526,7 +526,7 @@ func (c *Controller) Status(req *controlapi.StatusRequest, stream controlapi.Con
 			_, _ = sender.CloseAndReceive()
 		}()
 
-		for ss := range ch {
+		for ss := range statusCh {
 			for _, sr := range ss.Marshal() {
 				stableDigests := make(map[string]string, len(sr.Vertexes))
 				for _, v := range sr.Vertexes {
