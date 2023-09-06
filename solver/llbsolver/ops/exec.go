@@ -12,6 +12,7 @@ import (
 
 	"github.com/containerd/containerd/platforms"
 	"github.com/moby/buildkit/cache"
+	"github.com/moby/buildkit/depot"
 	"github.com/moby/buildkit/executor"
 	"github.com/moby/buildkit/frontend/gateway"
 	"github.com/moby/buildkit/session"
@@ -366,13 +367,18 @@ func (e *ExecOp) Exec(ctx context.Context, g session.Group, inputs []solver.Resu
 
 	for i, out := range p.OutputRefs {
 		if mutable, ok := out.Ref.(cache.MutableRef); ok {
+			_ = mutable.AppendStringSlice("depot.stableDigests", depot.StableDigests(ctx)...)
+			_ = mutable.InsertIfNotExists("depot.vertexDigest", depot.VertexDigest(ctx))
 			ref, err := mutable.Commit(ctx)
 			if err != nil {
 				return nil, errors.Wrapf(err, "error committing %s", mutable.ID())
 			}
 			results = append(results, worker.NewWorkerRefResult(ref, e.w))
 		} else {
-			results = append(results, worker.NewWorkerRefResult(out.Ref.(cache.ImmutableRef), e.w))
+			ref := out.Ref.(cache.ImmutableRef)
+			_ = ref.AppendStringSlice("depot.stableDigests", depot.StableDigests(ctx)...)
+			_ = ref.InsertIfNotExists("depot.vertexDigest", depot.VertexDigest(ctx))
+			results = append(results, worker.NewWorkerRefResult(ref, e.w))
 		}
 		// Prevent the result from being released.
 		p.OutputRefs[i].Ref = nil
