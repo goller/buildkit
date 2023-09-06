@@ -14,6 +14,7 @@ type UsageInfo struct {
 	Mutable bool   `json:"mutable"`
 	InUse   bool   `json:"inUse"`
 	Size    int64  `json:"size"`
+	Inodes  int64  `json:"inodes"`
 
 	CreatedAt     time.Time       `json:"createdAt"`
 	LastUsedAt    *time.Time      `json:"lastUsedAt"`
@@ -46,6 +47,7 @@ func (c *Client) DiskUsage(ctx context.Context, opts ...DiskUsageOption) ([]*Usa
 			Mutable:       d.Mutable,
 			InUse:         d.InUse,
 			Size:          d.Size_,
+			Inodes:        d.Inodes,
 			Parents:       d.Parents,
 			CreatedAt:     d.CreatedAt,
 			Description:   d.Description,

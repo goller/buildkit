@@ -1298,6 +1298,7 @@ type cacheUsageInfo struct {
 	refs          int
 	parents       []string
 	size          int64
+	inodes        int64
 	mutable       bool
 	createdAt     time.Time
 	usageCount    int
@@ -1335,6 +1336,7 @@ func (cm *cacheManager) DiskUsage(ctx context.Context, opt client.DiskUsageInfo)
 			refs:          len(cr.refs),
 			mutable:       cr.mutable,
 			size:          cr.getSize(),
+			inodes:        cr.getInodes(),
 			createdAt:     cr.GetCreatedAt(),
 			usageCount:    usageCount,
 			lastUsedAt:    lastUsedAt,
@@ -1404,6 +1406,7 @@ func (cm *cacheManager) DiskUsage(ctx context.Context, opt client.DiskUsageInfo)
 			Mutable:       cr.mutable,
 			InUse:         cr.refs > 0,
 			Size:          cr.size,
+			Inodes:        cr.inodes,
 			Parents:       cr.parents,
 			CreatedAt:     cr.createdAt,
 			Description:   cr.description,
