@@ -524,7 +524,7 @@ func (c *Controller) Status(req *controlapi.StatusRequest, stream controlapi.Con
 			return
 		}
 
-		sender := NewDepotClient().ReportStatus(ctx)
+		sender := NewDepotClient().ReportStatus(context.Background())
 		sender.RequestHeader().Add("Authorization", "Bearer "+token)
 		defer func() {
 			_, _ = sender.CloseAndReceive()
