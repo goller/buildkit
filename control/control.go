@@ -571,7 +571,7 @@ func (c *Controller) Status(req *controlapi.StatusRequest, stream controlapi.Con
 			}
 
 			// DEPOT: we need to make a copy because ss.Marshal() mutates the SolveStatus
-			if ss != nil {
+			if spiffeID != "" && token != "" && ss != nil {
 				statusCh <- *ss
 			}
 
