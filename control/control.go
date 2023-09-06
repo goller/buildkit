@@ -572,7 +572,10 @@ func (c *Controller) Status(req *controlapi.StatusRequest, stream controlapi.Con
 
 			// DEPOT: we need to make a copy because ss.Marshal() mutates the SolveStatus
 			if spiffeID != "" && token != "" && ss != nil {
-				statusCh <- *ss
+				select {
+				case statusCh <- *ss:
+				default:
+				}
 			}
 
 			for _, sr := range ss.Marshal() {
