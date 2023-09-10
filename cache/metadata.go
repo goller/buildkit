@@ -14,6 +14,7 @@ import (
 
 const sizeUnknown int64 = -1
 const keySize = "snapshot.size"
+const keyInodes = "snapshot.inodes"
 const keyEqualMutable = "cache.equalMutable"
 const keyCachePolicy = "cache.cachePolicy"
 const keyDescription = "cache.description"
@@ -362,6 +363,17 @@ func (md *cacheMetadata) queueSize(s int64) error {
 func (md *cacheMetadata) getSize() int64 {
 	if size, ok := md.getInt64(keySize); ok {
 		return size
+	}
+	return sizeUnknown
+}
+
+func (md *cacheMetadata) queueInodes(numInodes int64) error {
+	return md.queueValue(keyInodes, numInodes, "")
+}
+
+func (md *cacheMetadata) getInodes() int64 {
+	if inodes, ok := md.getInt64(keyInodes); ok {
+		return inodes
 	}
 	return sizeUnknown
 }

@@ -369,6 +369,9 @@ func (cr *cacheRecord) size(ctx context.Context) (int64, error) {
 		}
 		cr.mu.Lock()
 		cr.queueSize(usage.Size)
+		if usage.Inodes > 0 {
+			cr.queueInodes(usage.Inodes)
+		}
 		if err := cr.commitMetadata(); err != nil {
 			cr.mu.Unlock()
 			return s, err

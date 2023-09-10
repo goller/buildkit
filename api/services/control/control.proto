@@ -57,6 +57,7 @@ message UsageRecord {
 	repeated string Parents = 12;
 	repeated string stable_digests = 9998;
 	string creator_digest = 9999;
+	int64 inodes = 10000;
 }
 
 message SolveRequest {
