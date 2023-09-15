@@ -9,6 +9,7 @@ service MachineService {
   rpc PingMachineHealth(PingMachineHealthRequest) returns (PingMachineHealthResponse);
   rpc Usage(UsageRequest) returns (UsageResponse);
   rpc ReportStatus(stream ReportStatusRequest) returns (ReportStatusResponse);
+  rpc ReportSBOM(ReportSBOMRequest) returns (ReportSBOMResponse);
 }
 
 message RegisterMachineRequest {
@@ -132,3 +133,24 @@ message ReportStatusRequest {
 }
 
 message ReportStatusResponse {}
+
+message ReportSBOMRequest {
+  string spiffe_id = 1;
+  repeated SBOM sboms = 2;
+}
+
+message SBOM {
+  string platform = 1;
+  string spdx_json = 2;
+  string digest = 3;
+  // If the build was exported to an image the image name and digest are included.
+  optional Image image = 4;
+}
+
+message Image {
+  // Name is the image name and tag.
+  string name = 1;
+  string manifest_digest = 2;
+}
+
+message ReportSBOMResponse {}

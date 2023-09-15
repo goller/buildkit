@@ -17,6 +17,7 @@ import (
 	intoto "github.com/in-toto/in-toto-golang/in_toto"
 	"github.com/moby/buildkit/cache"
 	cacheconfig "github.com/moby/buildkit/cache/config"
+	"github.com/moby/buildkit/depot"
 	"github.com/moby/buildkit/exporter"
 	"github.com/moby/buildkit/exporter/attestation"
 	"github.com/moby/buildkit/exporter/containerimage/exptypes"
@@ -282,9 +283,12 @@ func (ic *ImageWriter) Commit(ctx context.Context, inp *exporter.Source, session
 				return nil, nil, err
 			}
 
-			desc, err := ic.commitAttestationsManifest(ctx, opts, p, committed.Manifest.Digest.String(), stmts)
+			desc, sboms, err := ic.commitAttestationsManifest(ctx, opts, p, committed.Manifest.Digest.String(), stmts)
 			if err != nil {
 				return nil, nil, err
+			}
+			if len(sboms) > 0 {
+				committed.SBOMs = append(committed.SBOMs, sboms...)
 			}
 			desc.Platform = &intotoPlatform
 			attestationManifests = append(attestationManifests, *desc)
@@ -375,6 +379,8 @@ type Committed struct {
 	// We return bytes here rather than ocispecs.Image as buildkit adds extra information
 	// to support docker schema.
 	ConfigBytes []byte
+	// SBOMs is the spdx document for the specific image and platform.
+	SBOMs []depot.SBOM
 }
 
 func (ic *ImageWriter) commitDistributionManifest(ctx context.Context, opts *ImageCommitOpts, ref cache.ImmutableRef, config []byte, remote *solver.Remote, annotations *Annotations, inlineCache []byte, buildInfo []byte, epoch *time.Time, sg session.Group) (*Committed, error) {
@@ -512,7 +518,8 @@ func (ic *ImageWriter) commitDistributionManifest(ctx context.Context, opts *Ima
 	return committed, nil
 }
 
-func (ic *ImageWriter) commitAttestationsManifest(ctx context.Context, opts *ImageCommitOpts, p exptypes.Platform, target string, statements []intoto.Statement) (*ocispecs.Descriptor, error) {
+// DEPOT: Returns the manifest descriptor and all SBOMs.
+func (ic *ImageWriter) commitAttestationsManifest(ctx context.Context, opts *ImageCommitOpts, p exptypes.Platform, target string, statements []intoto.Statement) (*ocispecs.Descriptor, []depot.SBOM, error) {
 	var (
 		manifestType = ocispecs.MediaTypeImageManifest
 		configType   = ocispecs.MediaTypeImageConfig
@@ -523,12 +530,13 @@ func (ic *ImageWriter) commitAttestationsManifest(ctx context.Context, opts *Ima
 	}
 
 	layers := make([]ocispecs.Descriptor, len(statements))
+	var sboms []depot.SBOM
 	for i, statement := range statements {
 		i, statement := i, statement
 
 		data, err := json.Marshal(statement)
 		if err != nil {
-			return nil, errors.Wrap(err, "failed to marshal attestation")
+			return nil, nil, errors.Wrap(err, "failed to marshal attestation")
 		}
 		digest := digest.FromBytes(data)
 		desc := ocispecs.Descriptor{
@@ -541,15 +549,28 @@ func (ic *ImageWriter) commitAttestationsManifest(ctx context.Context, opts *Ima
 			},
 		}
 
+		if statement.PredicateType == intoto.PredicateSPDX {
+			sbom := depot.SBOM{
+				Statement: data,
+				Platform:  platforms.Format(p.Platform),
+				Digest:    digest.String(),
+				Image: &depot.ImageSBOM{
+					Name:           opts.ImageName,
+					ManifestDigest: target,
+				},
+			}
+			sboms = append(sboms, sbom)
+		}
+
 		if err := content.WriteBlob(ctx, ic.opt.ContentStore, digest.String(), bytes.NewReader(data), desc); err != nil {
-			return nil, errors.Wrapf(err, "error writing data blob %s", digest)
+			return nil, nil, errors.Wrapf(err, "error writing data blob %s", digest)
 		}
 		layers[i] = desc
 	}
 
 	config, err := attestationsConfig(layers)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	configDigest := digest.FromBytes(config)
 	configDesc := ocispecs.Descriptor{
@@ -589,7 +610,7 @@ func (ic *ImageWriter) commitAttestationsManifest(ctx context.Context, opts *Ima
 
 	mfstJSON, err := json.MarshalIndent(mfst, "", "  ")
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to marshal manifest")
+		return nil, nil, errors.Wrap(err, "failed to marshal manifest")
 	}
 
 	mfstDigest := digest.FromBytes(mfstJSON)
@@ -600,14 +621,14 @@ func (ic *ImageWriter) commitAttestationsManifest(ctx context.Context, opts *Ima
 
 	done := progress.OneOff(ctx, "exporting attestation manifest "+mfstDigest.String())
 	if err := content.WriteBlob(ctx, ic.opt.ContentStore, mfstDigest.String(), bytes.NewReader(mfstJSON), mfstDesc, content.WithLabels((labels))); err != nil {
-		return nil, done(errors.Wrapf(err, "error writing manifest blob %s", mfstDigest))
+		return nil, nil, done(errors.Wrapf(err, "error writing manifest blob %s", mfstDigest))
 	}
 	if err := content.WriteBlob(ctx, ic.opt.ContentStore, configDigest.String(), bytes.NewReader(config), configDesc); err != nil {
-		return nil, done(errors.Wrap(err, "error writing config blob"))
+		return nil, nil, done(errors.Wrap(err, "error writing config blob"))
 	}
 	done(nil)
 
-	return &ocispecs.Descriptor{
+	attestationsManifest := &ocispecs.Descriptor{
 		Digest:    mfstDigest,
 		Size:      int64(len(mfstJSON)),
 		MediaType: manifestType,
@@ -615,7 +636,8 @@ func (ic *ImageWriter) commitAttestationsManifest(ctx context.Context, opts *Ima
 			attestationTypes.DockerAnnotationReferenceType:   attestationTypes.DockerAnnotationReferenceTypeDefault,
 			attestationTypes.DockerAnnotationReferenceDigest: target,
 		},
-	}, nil
+	}
+	return attestationsManifest, sboms, nil
 }
 
 func (ic *ImageWriter) ContentStore() content.Store {

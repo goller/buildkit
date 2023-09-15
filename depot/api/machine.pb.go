@@ -731,6 +731,227 @@ func (*ReportStatusResponse) Descriptor() ([]byte, []int) {
 	return file_machine_proto_rawDescGZIP(), []int{10}
 }
 
+type ReportSBOMRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	SpiffeId string  `protobuf:"bytes,1,opt,name=spiffe_id,json=spiffeId,proto3" json:"spiffe_id,omitempty"`
+	Sboms    []*SBOM `protobuf:"bytes,2,rep,name=sboms,proto3" json:"sboms,omitempty"`
+}
+
+func (x *ReportSBOMRequest) Reset() {
+	*x = ReportSBOMRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_machine_proto_msgTypes[11]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *ReportSBOMRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ReportSBOMRequest) ProtoMessage() {}
+
+func (x *ReportSBOMRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_machine_proto_msgTypes[11]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ReportSBOMRequest.ProtoReflect.Descriptor instead.
+func (*ReportSBOMRequest) Descriptor() ([]byte, []int) {
+	return file_machine_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *ReportSBOMRequest) GetSpiffeId() string {
+	if x != nil {
+		return x.SpiffeId
+	}
+	return ""
+}
+
+func (x *ReportSBOMRequest) GetSboms() []*SBOM {
+	if x != nil {
+		return x.Sboms
+	}
+	return nil
+}
+
+type SBOM struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Platform string `protobuf:"bytes,1,opt,name=platform,proto3" json:"platform,omitempty"`
+	SpdxJson string `protobuf:"bytes,2,opt,name=spdx_json,json=spdxJson,proto3" json:"spdx_json,omitempty"`
+	Digest   string `protobuf:"bytes,3,opt,name=digest,proto3" json:"digest,omitempty"`
+	// If the build was exported to an image the image name and digest are included.
+	Image *Image `protobuf:"bytes,4,opt,name=image,proto3,oneof" json:"image,omitempty"`
+}
+
+func (x *SBOM) Reset() {
+	*x = SBOM{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_machine_proto_msgTypes[12]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *SBOM) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SBOM) ProtoMessage() {}
+
+func (x *SBOM) ProtoReflect() protoreflect.Message {
+	mi := &file_machine_proto_msgTypes[12]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SBOM.ProtoReflect.Descriptor instead.
+func (*SBOM) Descriptor() ([]byte, []int) {
+	return file_machine_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *SBOM) GetPlatform() string {
+	if x != nil {
+		return x.Platform
+	}
+	return ""
+}
+
+func (x *SBOM) GetSpdxJson() string {
+	if x != nil {
+		return x.SpdxJson
+	}
+	return ""
+}
+
+func (x *SBOM) GetDigest() string {
+	if x != nil {
+		return x.Digest
+	}
+	return ""
+}
+
+func (x *SBOM) GetImage() *Image {
+	if x != nil {
+		return x.Image
+	}
+	return nil
+}
+
+type Image struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// Name is the image name and tag.
+	Name           string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	ManifestDigest string `protobuf:"bytes,2,opt,name=manifest_digest,json=manifestDigest,proto3" json:"manifest_digest,omitempty"`
+}
+
+func (x *Image) Reset() {
+	*x = Image{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_machine_proto_msgTypes[13]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *Image) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Image) ProtoMessage() {}
+
+func (x *Image) ProtoReflect() protoreflect.Message {
+	mi := &file_machine_proto_msgTypes[13]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Image.ProtoReflect.Descriptor instead.
+func (*Image) Descriptor() ([]byte, []int) {
+	return file_machine_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *Image) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *Image) GetManifestDigest() string {
+	if x != nil {
+		return x.ManifestDigest
+	}
+	return ""
+}
+
+type ReportSBOMResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+}
+
+func (x *ReportSBOMResponse) Reset() {
+	*x = ReportSBOMResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_machine_proto_msgTypes[14]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *ReportSBOMResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ReportSBOMResponse) ProtoMessage() {}
+
+func (x *ReportSBOMResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_machine_proto_msgTypes[14]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ReportSBOMResponse.ProtoReflect.Descriptor instead.
+func (*ReportSBOMResponse) Descriptor() ([]byte, []int) {
+	return file_machine_proto_rawDescGZIP(), []int{14}
+}
+
 type RegisterMachineRequest_AWSRegistration struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -743,7 +964,7 @@ type RegisterMachineRequest_AWSRegistration struct {
 func (x *RegisterMachineRequest_AWSRegistration) Reset() {
 	*x = RegisterMachineRequest_AWSRegistration{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_machine_proto_msgTypes[11]
+		mi := &file_machine_proto_msgTypes[15]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -756,7 +977,7 @@ func (x *RegisterMachineRequest_AWSRegistration) String() string {
 func (*RegisterMachineRequest_AWSRegistration) ProtoMessage() {}
 
 func (x *RegisterMachineRequest_AWSRegistration) ProtoReflect() protoreflect.Message {
-	mi := &file_machine_proto_msgTypes[11]
+	mi := &file_machine_proto_msgTypes[15]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -801,7 +1022,7 @@ type RegisterMachineResponse_Mount struct {
 func (x *RegisterMachineResponse_Mount) Reset() {
 	*x = RegisterMachineResponse_Mount{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_machine_proto_msgTypes[12]
+		mi := &file_machine_proto_msgTypes[16]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -814,7 +1035,7 @@ func (x *RegisterMachineResponse_Mount) String() string {
 func (*RegisterMachineResponse_Mount) ProtoMessage() {}
 
 func (x *RegisterMachineResponse_Mount) ProtoReflect() protoreflect.Message {
-	mi := &file_machine_proto_msgTypes[12]
+	mi := &file_machine_proto_msgTypes[16]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -875,7 +1096,7 @@ type RegisterMachineResponse_PendingTask struct {
 func (x *RegisterMachineResponse_PendingTask) Reset() {
 	*x = RegisterMachineResponse_PendingTask{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_machine_proto_msgTypes[13]
+		mi := &file_machine_proto_msgTypes[17]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -888,7 +1109,7 @@ func (x *RegisterMachineResponse_PendingTask) String() string {
 func (*RegisterMachineResponse_PendingTask) ProtoMessage() {}
 
 func (x *RegisterMachineResponse_PendingTask) ProtoReflect() protoreflect.Message {
-	mi := &file_machine_proto_msgTypes[13]
+	mi := &file_machine_proto_msgTypes[17]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -930,7 +1151,7 @@ type RegisterMachineResponse_BuildKitTask struct {
 func (x *RegisterMachineResponse_BuildKitTask) Reset() {
 	*x = RegisterMachineResponse_BuildKitTask{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_machine_proto_msgTypes[14]
+		mi := &file_machine_proto_msgTypes[18]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -943,7 +1164,7 @@ func (x *RegisterMachineResponse_BuildKitTask) String() string {
 func (*RegisterMachineResponse_BuildKitTask) ProtoMessage() {}
 
 func (x *RegisterMachineResponse_BuildKitTask) ProtoReflect() protoreflect.Message {
-	mi := &file_machine_proto_msgTypes[14]
+	mi := &file_machine_proto_msgTypes[18]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1064,7 +1285,7 @@ type RegisterMachineResponse_Profiler struct {
 func (x *RegisterMachineResponse_Profiler) Reset() {
 	*x = RegisterMachineResponse_Profiler{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_machine_proto_msgTypes[15]
+		mi := &file_machine_proto_msgTypes[19]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1077,7 +1298,7 @@ func (x *RegisterMachineResponse_Profiler) String() string {
 func (*RegisterMachineResponse_Profiler) ProtoMessage() {}
 
 func (x *RegisterMachineResponse_Profiler) ProtoReflect() protoreflect.Message {
-	mi := &file_machine_proto_msgTypes[15]
+	mi := &file_machine_proto_msgTypes[19]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1133,7 +1354,7 @@ type RegisterMachineResponse_Mount_CephVolume struct {
 func (x *RegisterMachineResponse_Mount_CephVolume) Reset() {
 	*x = RegisterMachineResponse_Mount_CephVolume{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_machine_proto_msgTypes[16]
+		mi := &file_machine_proto_msgTypes[20]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1146,7 +1367,7 @@ func (x *RegisterMachineResponse_Mount_CephVolume) String() string {
 func (*RegisterMachineResponse_Mount_CephVolume) ProtoMessage() {}
 
 func (x *RegisterMachineResponse_Mount_CephVolume) ProtoReflect() protoreflect.Message {
-	mi := &file_machine_proto_msgTypes[16]
+	mi := &file_machine_proto_msgTypes[20]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1373,7 +1594,28 @@ var file_machine_proto_rawDesc = []byte{
 	0x03, 0x6b, 0x65, 0x79, 0x12, 0x14, 0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x18, 0x02, 0x20,
 	0x01, 0x28, 0x09, 0x52, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x3a, 0x02, 0x38, 0x01, 0x22, 0x16,
 	0x0a, 0x14, 0x52, 0x65, 0x70, 0x6f, 0x72, 0x74, 0x53, 0x74, 0x61, 0x74, 0x75, 0x73, 0x52, 0x65,
-	0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x32, 0x83, 0x03, 0x0a, 0x0e, 0x4d, 0x61, 0x63, 0x68, 0x69,
+	0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x5c, 0x0a, 0x11, 0x52, 0x65, 0x70, 0x6f, 0x72, 0x74,
+	0x53, 0x42, 0x4f, 0x4d, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x1b, 0x0a, 0x09, 0x73,
+	0x70, 0x69, 0x66, 0x66, 0x65, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x08,
+	0x73, 0x70, 0x69, 0x66, 0x66, 0x65, 0x49, 0x64, 0x12, 0x2a, 0x0a, 0x05, 0x73, 0x62, 0x6f, 0x6d,
+	0x73, 0x18, 0x02, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x14, 0x2e, 0x64, 0x65, 0x70, 0x6f, 0x74, 0x2e,
+	0x63, 0x6c, 0x6f, 0x75, 0x64, 0x2e, 0x76, 0x33, 0x2e, 0x53, 0x42, 0x4f, 0x4d, 0x52, 0x05, 0x73,
+	0x62, 0x6f, 0x6d, 0x73, 0x22, 0x93, 0x01, 0x0a, 0x04, 0x53, 0x42, 0x4f, 0x4d, 0x12, 0x1a, 0x0a,
+	0x08, 0x70, 0x6c, 0x61, 0x74, 0x66, 0x6f, 0x72, 0x6d, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52,
+	0x08, 0x70, 0x6c, 0x61, 0x74, 0x66, 0x6f, 0x72, 0x6d, 0x12, 0x1b, 0x0a, 0x09, 0x73, 0x70, 0x64,
+	0x78, 0x5f, 0x6a, 0x73, 0x6f, 0x6e, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x08, 0x73, 0x70,
+	0x64, 0x78, 0x4a, 0x73, 0x6f, 0x6e, 0x12, 0x16, 0x0a, 0x06, 0x64, 0x69, 0x67, 0x65, 0x73, 0x74,
+	0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x06, 0x64, 0x69, 0x67, 0x65, 0x73, 0x74, 0x12, 0x30,
+	0x0a, 0x05, 0x69, 0x6d, 0x61, 0x67, 0x65, 0x18, 0x04, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x15, 0x2e,
+	0x64, 0x65, 0x70, 0x6f, 0x74, 0x2e, 0x63, 0x6c, 0x6f, 0x75, 0x64, 0x2e, 0x76, 0x33, 0x2e, 0x49,
+	0x6d, 0x61, 0x67, 0x65, 0x48, 0x00, 0x52, 0x05, 0x69, 0x6d, 0x61, 0x67, 0x65, 0x88, 0x01, 0x01,
+	0x42, 0x08, 0x0a, 0x06, 0x5f, 0x69, 0x6d, 0x61, 0x67, 0x65, 0x22, 0x44, 0x0a, 0x05, 0x49, 0x6d,
+	0x61, 0x67, 0x65, 0x12, 0x12, 0x0a, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28,
+	0x09, 0x52, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x12, 0x27, 0x0a, 0x0f, 0x6d, 0x61, 0x6e, 0x69, 0x66,
+	0x65, 0x73, 0x74, 0x5f, 0x64, 0x69, 0x67, 0x65, 0x73, 0x74, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09,
+	0x52, 0x0e, 0x6d, 0x61, 0x6e, 0x69, 0x66, 0x65, 0x73, 0x74, 0x44, 0x69, 0x67, 0x65, 0x73, 0x74,
+	0x22, 0x14, 0x0a, 0x12, 0x52, 0x65, 0x70, 0x6f, 0x72, 0x74, 0x53, 0x42, 0x4f, 0x4d, 0x52, 0x65,
+	0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x32, 0xd8, 0x03, 0x0a, 0x0e, 0x4d, 0x61, 0x63, 0x68, 0x69,
 	0x6e, 0x65, 0x53, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x12, 0x64, 0x0a, 0x0f, 0x52, 0x65, 0x67,
 	0x69, 0x73, 0x74, 0x65, 0x72, 0x4d, 0x61, 0x63, 0x68, 0x69, 0x6e, 0x65, 0x12, 0x26, 0x2e, 0x64,
 	0x65, 0x70, 0x6f, 0x74, 0x2e, 0x63, 0x6c, 0x6f, 0x75, 0x64, 0x2e, 0x76, 0x33, 0x2e, 0x52, 0x65,
@@ -1397,18 +1639,24 @@ var file_machine_proto_rawDesc = []byte{
 	0x2e, 0x52, 0x65, 0x70, 0x6f, 0x72, 0x74, 0x53, 0x74, 0x61, 0x74, 0x75, 0x73, 0x52, 0x65, 0x71,
 	0x75, 0x65, 0x73, 0x74, 0x1a, 0x24, 0x2e, 0x64, 0x65, 0x70, 0x6f, 0x74, 0x2e, 0x63, 0x6c, 0x6f,
 	0x75, 0x64, 0x2e, 0x76, 0x33, 0x2e, 0x52, 0x65, 0x70, 0x6f, 0x72, 0x74, 0x53, 0x74, 0x61, 0x74,
-	0x75, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x28, 0x01, 0x42, 0xa8, 0x01, 0x0a,
-	0x12, 0x63, 0x6f, 0x6d, 0x2e, 0x64, 0x65, 0x70, 0x6f, 0x74, 0x2e, 0x63, 0x6c, 0x6f, 0x75, 0x64,
-	0x2e, 0x76, 0x33, 0x42, 0x0c, 0x4d, 0x61, 0x63, 0x68, 0x69, 0x6e, 0x65, 0x50, 0x72, 0x6f, 0x74,
-	0x6f, 0x50, 0x01, 0x5a, 0x2a, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f,
-	0x6d, 0x6f, 0x62, 0x79, 0x2f, 0x62, 0x75, 0x69, 0x6c, 0x64, 0x6b, 0x69, 0x74, 0x2f, 0x64, 0x65,
-	0x70, 0x6f, 0x74, 0x2f, 0x61, 0x70, 0x69, 0x3b, 0x63, 0x6c, 0x6f, 0x75, 0x64, 0x76, 0x33, 0xa2,
-	0x02, 0x03, 0x44, 0x43, 0x58, 0xaa, 0x02, 0x0e, 0x44, 0x65, 0x70, 0x6f, 0x74, 0x2e, 0x43, 0x6c,
-	0x6f, 0x75, 0x64, 0x2e, 0x56, 0x33, 0xca, 0x02, 0x0e, 0x44, 0x65, 0x70, 0x6f, 0x74, 0x5c, 0x43,
-	0x6c, 0x6f, 0x75, 0x64, 0x5c, 0x56, 0x33, 0xe2, 0x02, 0x1a, 0x44, 0x65, 0x70, 0x6f, 0x74, 0x5c,
-	0x43, 0x6c, 0x6f, 0x75, 0x64, 0x5c, 0x56, 0x33, 0x5c, 0x47, 0x50, 0x42, 0x4d, 0x65, 0x74, 0x61,
-	0x64, 0x61, 0x74, 0x61, 0xea, 0x02, 0x10, 0x44, 0x65, 0x70, 0x6f, 0x74, 0x3a, 0x3a, 0x43, 0x6c,
-	0x6f, 0x75, 0x64, 0x3a, 0x3a, 0x56, 0x33, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x75, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x28, 0x01, 0x12, 0x53, 0x0a, 0x0a,
+	0x52, 0x65, 0x70, 0x6f, 0x72, 0x74, 0x53, 0x42, 0x4f, 0x4d, 0x12, 0x21, 0x2e, 0x64, 0x65, 0x70,
+	0x6f, 0x74, 0x2e, 0x63, 0x6c, 0x6f, 0x75, 0x64, 0x2e, 0x76, 0x33, 0x2e, 0x52, 0x65, 0x70, 0x6f,
+	0x72, 0x74, 0x53, 0x42, 0x4f, 0x4d, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x22, 0x2e,
+	0x64, 0x65, 0x70, 0x6f, 0x74, 0x2e, 0x63, 0x6c, 0x6f, 0x75, 0x64, 0x2e, 0x76, 0x33, 0x2e, 0x52,
+	0x65, 0x70, 0x6f, 0x72, 0x74, 0x53, 0x42, 0x4f, 0x4d, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73,
+	0x65, 0x42, 0xa8, 0x01, 0x0a, 0x12, 0x63, 0x6f, 0x6d, 0x2e, 0x64, 0x65, 0x70, 0x6f, 0x74, 0x2e,
+	0x63, 0x6c, 0x6f, 0x75, 0x64, 0x2e, 0x76, 0x33, 0x42, 0x0c, 0x4d, 0x61, 0x63, 0x68, 0x69, 0x6e,
+	0x65, 0x50, 0x72, 0x6f, 0x74, 0x6f, 0x50, 0x01, 0x5a, 0x2a, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62,
+	0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x6d, 0x6f, 0x62, 0x79, 0x2f, 0x62, 0x75, 0x69, 0x6c, 0x64, 0x6b,
+	0x69, 0x74, 0x2f, 0x64, 0x65, 0x70, 0x6f, 0x74, 0x2f, 0x61, 0x70, 0x69, 0x3b, 0x63, 0x6c, 0x6f,
+	0x75, 0x64, 0x76, 0x33, 0xa2, 0x02, 0x03, 0x44, 0x43, 0x58, 0xaa, 0x02, 0x0e, 0x44, 0x65, 0x70,
+	0x6f, 0x74, 0x2e, 0x43, 0x6c, 0x6f, 0x75, 0x64, 0x2e, 0x56, 0x33, 0xca, 0x02, 0x0e, 0x44, 0x65,
+	0x70, 0x6f, 0x74, 0x5c, 0x43, 0x6c, 0x6f, 0x75, 0x64, 0x5c, 0x56, 0x33, 0xe2, 0x02, 0x1a, 0x44,
+	0x65, 0x70, 0x6f, 0x74, 0x5c, 0x43, 0x6c, 0x6f, 0x75, 0x64, 0x5c, 0x56, 0x33, 0x5c, 0x47, 0x50,
+	0x42, 0x4d, 0x65, 0x74, 0x61, 0x64, 0x61, 0x74, 0x61, 0xea, 0x02, 0x10, 0x44, 0x65, 0x70, 0x6f,
+	0x74, 0x3a, 0x3a, 0x43, 0x6c, 0x6f, 0x75, 0x64, 0x3a, 0x3a, 0x56, 0x33, 0x62, 0x06, 0x70, 0x72,
+	0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -1424,7 +1672,7 @@ func file_machine_proto_rawDescGZIP() []byte {
 }
 
 var file_machine_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_machine_proto_msgTypes = make([]protoimpl.MessageInfo, 18)
+var file_machine_proto_msgTypes = make([]protoimpl.MessageInfo, 22)
 var file_machine_proto_goTypes = []interface{}{
 	(RegisterMachineResponse_Mount_FilesystemType)(0), // 0: depot.cloud.v3.RegisterMachineResponse.Mount.FilesystemType
 	(*RegisterMachineRequest)(nil),                    // 1: depot.cloud.v3.RegisterMachineRequest
@@ -1438,42 +1686,50 @@ var file_machine_proto_goTypes = []interface{}{
 	(*UsageResponse)(nil),                             // 9: depot.cloud.v3.UsageResponse
 	(*ReportStatusRequest)(nil),                       // 10: depot.cloud.v3.ReportStatusRequest
 	(*ReportStatusResponse)(nil),                      // 11: depot.cloud.v3.ReportStatusResponse
-	(*RegisterMachineRequest_AWSRegistration)(nil),    // 12: depot.cloud.v3.RegisterMachineRequest.AWSRegistration
-	(*RegisterMachineResponse_Mount)(nil),             // 13: depot.cloud.v3.RegisterMachineResponse.Mount
-	(*RegisterMachineResponse_PendingTask)(nil),       // 14: depot.cloud.v3.RegisterMachineResponse.PendingTask
-	(*RegisterMachineResponse_BuildKitTask)(nil),      // 15: depot.cloud.v3.RegisterMachineResponse.BuildKitTask
-	(*RegisterMachineResponse_Profiler)(nil),          // 16: depot.cloud.v3.RegisterMachineResponse.Profiler
-	(*RegisterMachineResponse_Mount_CephVolume)(nil),  // 17: depot.cloud.v3.RegisterMachineResponse.Mount.CephVolume
-	nil,                            // 18: depot.cloud.v3.ReportStatusRequest.StableDigestsEntry
-	(*control.StatusResponse)(nil), // 19: moby.buildkit.v1.StatusResponse
+	(*ReportSBOMRequest)(nil),                         // 12: depot.cloud.v3.ReportSBOMRequest
+	(*SBOM)(nil),                                      // 13: depot.cloud.v3.SBOM
+	(*Image)(nil),                                     // 14: depot.cloud.v3.Image
+	(*ReportSBOMResponse)(nil),                        // 15: depot.cloud.v3.ReportSBOMResponse
+	(*RegisterMachineRequest_AWSRegistration)(nil),    // 16: depot.cloud.v3.RegisterMachineRequest.AWSRegistration
+	(*RegisterMachineResponse_Mount)(nil),             // 17: depot.cloud.v3.RegisterMachineResponse.Mount
+	(*RegisterMachineResponse_PendingTask)(nil),       // 18: depot.cloud.v3.RegisterMachineResponse.PendingTask
+	(*RegisterMachineResponse_BuildKitTask)(nil),      // 19: depot.cloud.v3.RegisterMachineResponse.BuildKitTask
+	(*RegisterMachineResponse_Profiler)(nil),          // 20: depot.cloud.v3.RegisterMachineResponse.Profiler
+	(*RegisterMachineResponse_Mount_CephVolume)(nil),  // 21: depot.cloud.v3.RegisterMachineResponse.Mount.CephVolume
+	nil,                            // 22: depot.cloud.v3.ReportStatusRequest.StableDigestsEntry
+	(*control.StatusResponse)(nil), // 23: moby.buildkit.v1.StatusResponse
 }
 var file_machine_proto_depIdxs = []int32{
-	12, // 0: depot.cloud.v3.RegisterMachineRequest.aws:type_name -> depot.cloud.v3.RegisterMachineRequest.AWSRegistration
-	14, // 1: depot.cloud.v3.RegisterMachineResponse.pending:type_name -> depot.cloud.v3.RegisterMachineResponse.PendingTask
-	15, // 2: depot.cloud.v3.RegisterMachineResponse.buildkit:type_name -> depot.cloud.v3.RegisterMachineResponse.BuildKitTask
+	16, // 0: depot.cloud.v3.RegisterMachineRequest.aws:type_name -> depot.cloud.v3.RegisterMachineRequest.AWSRegistration
+	18, // 1: depot.cloud.v3.RegisterMachineResponse.pending:type_name -> depot.cloud.v3.RegisterMachineResponse.PendingTask
+	19, // 2: depot.cloud.v3.RegisterMachineResponse.buildkit:type_name -> depot.cloud.v3.RegisterMachineResponse.BuildKitTask
 	4,  // 3: depot.cloud.v3.PingMachineHealthRequest.disks:type_name -> depot.cloud.v3.DiskSpace
 	8,  // 4: depot.cloud.v3.UsageRequest.cache:type_name -> depot.cloud.v3.Cache
-	19, // 5: depot.cloud.v3.ReportStatusRequest.status:type_name -> moby.buildkit.v1.StatusResponse
-	18, // 6: depot.cloud.v3.ReportStatusRequest.stable_digests:type_name -> depot.cloud.v3.ReportStatusRequest.StableDigestsEntry
-	0,  // 7: depot.cloud.v3.RegisterMachineResponse.Mount.fs_type:type_name -> depot.cloud.v3.RegisterMachineResponse.Mount.FilesystemType
-	17, // 8: depot.cloud.v3.RegisterMachineResponse.Mount.ceph_volume:type_name -> depot.cloud.v3.RegisterMachineResponse.Mount.CephVolume
-	6,  // 9: depot.cloud.v3.RegisterMachineResponse.BuildKitTask.cert:type_name -> depot.cloud.v3.Cert
-	6,  // 10: depot.cloud.v3.RegisterMachineResponse.BuildKitTask.ca_cert:type_name -> depot.cloud.v3.Cert
-	13, // 11: depot.cloud.v3.RegisterMachineResponse.BuildKitTask.mounts:type_name -> depot.cloud.v3.RegisterMachineResponse.Mount
-	16, // 12: depot.cloud.v3.RegisterMachineResponse.BuildKitTask.profiler:type_name -> depot.cloud.v3.RegisterMachineResponse.Profiler
-	1,  // 13: depot.cloud.v3.MachineService.RegisterMachine:input_type -> depot.cloud.v3.RegisterMachineRequest
-	3,  // 14: depot.cloud.v3.MachineService.PingMachineHealth:input_type -> depot.cloud.v3.PingMachineHealthRequest
-	7,  // 15: depot.cloud.v3.MachineService.Usage:input_type -> depot.cloud.v3.UsageRequest
-	10, // 16: depot.cloud.v3.MachineService.ReportStatus:input_type -> depot.cloud.v3.ReportStatusRequest
-	2,  // 17: depot.cloud.v3.MachineService.RegisterMachine:output_type -> depot.cloud.v3.RegisterMachineResponse
-	5,  // 18: depot.cloud.v3.MachineService.PingMachineHealth:output_type -> depot.cloud.v3.PingMachineHealthResponse
-	9,  // 19: depot.cloud.v3.MachineService.Usage:output_type -> depot.cloud.v3.UsageResponse
-	11, // 20: depot.cloud.v3.MachineService.ReportStatus:output_type -> depot.cloud.v3.ReportStatusResponse
-	17, // [17:21] is the sub-list for method output_type
-	13, // [13:17] is the sub-list for method input_type
-	13, // [13:13] is the sub-list for extension type_name
-	13, // [13:13] is the sub-list for extension extendee
-	0,  // [0:13] is the sub-list for field type_name
+	23, // 5: depot.cloud.v3.ReportStatusRequest.status:type_name -> moby.buildkit.v1.StatusResponse
+	22, // 6: depot.cloud.v3.ReportStatusRequest.stable_digests:type_name -> depot.cloud.v3.ReportStatusRequest.StableDigestsEntry
+	13, // 7: depot.cloud.v3.ReportSBOMRequest.sboms:type_name -> depot.cloud.v3.SBOM
+	14, // 8: depot.cloud.v3.SBOM.image:type_name -> depot.cloud.v3.Image
+	0,  // 9: depot.cloud.v3.RegisterMachineResponse.Mount.fs_type:type_name -> depot.cloud.v3.RegisterMachineResponse.Mount.FilesystemType
+	21, // 10: depot.cloud.v3.RegisterMachineResponse.Mount.ceph_volume:type_name -> depot.cloud.v3.RegisterMachineResponse.Mount.CephVolume
+	6,  // 11: depot.cloud.v3.RegisterMachineResponse.BuildKitTask.cert:type_name -> depot.cloud.v3.Cert
+	6,  // 12: depot.cloud.v3.RegisterMachineResponse.BuildKitTask.ca_cert:type_name -> depot.cloud.v3.Cert
+	17, // 13: depot.cloud.v3.RegisterMachineResponse.BuildKitTask.mounts:type_name -> depot.cloud.v3.RegisterMachineResponse.Mount
+	20, // 14: depot.cloud.v3.RegisterMachineResponse.BuildKitTask.profiler:type_name -> depot.cloud.v3.RegisterMachineResponse.Profiler
+	1,  // 15: depot.cloud.v3.MachineService.RegisterMachine:input_type -> depot.cloud.v3.RegisterMachineRequest
+	3,  // 16: depot.cloud.v3.MachineService.PingMachineHealth:input_type -> depot.cloud.v3.PingMachineHealthRequest
+	7,  // 17: depot.cloud.v3.MachineService.Usage:input_type -> depot.cloud.v3.UsageRequest
+	10, // 18: depot.cloud.v3.MachineService.ReportStatus:input_type -> depot.cloud.v3.ReportStatusRequest
+	12, // 19: depot.cloud.v3.MachineService.ReportSBOM:input_type -> depot.cloud.v3.ReportSBOMRequest
+	2,  // 20: depot.cloud.v3.MachineService.RegisterMachine:output_type -> depot.cloud.v3.RegisterMachineResponse
+	5,  // 21: depot.cloud.v3.MachineService.PingMachineHealth:output_type -> depot.cloud.v3.PingMachineHealthResponse
+	9,  // 22: depot.cloud.v3.MachineService.Usage:output_type -> depot.cloud.v3.UsageResponse
+	11, // 23: depot.cloud.v3.MachineService.ReportStatus:output_type -> depot.cloud.v3.ReportStatusResponse
+	15, // 24: depot.cloud.v3.MachineService.ReportSBOM:output_type -> depot.cloud.v3.ReportSBOMResponse
+	20, // [20:25] is the sub-list for method output_type
+	15, // [15:20] is the sub-list for method input_type
+	15, // [15:15] is the sub-list for extension type_name
+	15, // [15:15] is the sub-list for extension extendee
+	0,  // [0:15] is the sub-list for field type_name
 }
 
 func init() { file_machine_proto_init() }
@@ -1615,7 +1871,7 @@ func file_machine_proto_init() {
 			}
 		}
 		file_machine_proto_msgTypes[11].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*RegisterMachineRequest_AWSRegistration); i {
+			switch v := v.(*ReportSBOMRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1627,7 +1883,7 @@ func file_machine_proto_init() {
 			}
 		}
 		file_machine_proto_msgTypes[12].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*RegisterMachineResponse_Mount); i {
+			switch v := v.(*SBOM); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1639,7 +1895,7 @@ func file_machine_proto_init() {
 			}
 		}
 		file_machine_proto_msgTypes[13].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*RegisterMachineResponse_PendingTask); i {
+			switch v := v.(*Image); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1651,7 +1907,7 @@ func file_machine_proto_init() {
 			}
 		}
 		file_machine_proto_msgTypes[14].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*RegisterMachineResponse_BuildKitTask); i {
+			switch v := v.(*ReportSBOMResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1663,7 +1919,7 @@ func file_machine_proto_init() {
 			}
 		}
 		file_machine_proto_msgTypes[15].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*RegisterMachineResponse_Profiler); i {
+			switch v := v.(*RegisterMachineRequest_AWSRegistration); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1675,6 +1931,54 @@ func file_machine_proto_init() {
 			}
 		}
 		file_machine_proto_msgTypes[16].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*RegisterMachineResponse_Mount); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_machine_proto_msgTypes[17].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*RegisterMachineResponse_PendingTask); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_machine_proto_msgTypes[18].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*RegisterMachineResponse_BuildKitTask); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_machine_proto_msgTypes[19].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*RegisterMachineResponse_Profiler); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_machine_proto_msgTypes[20].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*RegisterMachineResponse_Mount_CephVolume); i {
 			case 0:
 				return &v.state
@@ -1695,14 +1999,15 @@ func file_machine_proto_init() {
 		(*RegisterMachineResponse_Buildkit)(nil),
 	}
 	file_machine_proto_msgTypes[12].OneofWrappers = []interface{}{}
-	file_machine_proto_msgTypes[14].OneofWrappers = []interface{}{}
+	file_machine_proto_msgTypes[16].OneofWrappers = []interface{}{}
+	file_machine_proto_msgTypes[18].OneofWrappers = []interface{}{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_machine_proto_rawDesc,
 			NumEnums:      1,
-			NumMessages:   18,
+			NumMessages:   22,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

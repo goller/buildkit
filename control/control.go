@@ -10,6 +10,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"connectrpc.com/connect"
 	contentapi "github.com/containerd/containerd/api/services/content/v1"
 	leasesapi "github.com/containerd/containerd/api/services/leases/v1"
 	"github.com/containerd/containerd/content"
@@ -24,6 +25,7 @@ import (
 	"github.com/moby/buildkit/client"
 	"github.com/moby/buildkit/cmd/buildkitd/config"
 	controlgateway "github.com/moby/buildkit/control/gateway"
+	"github.com/moby/buildkit/depot"
 	cloudv3 "github.com/moby/buildkit/depot/api"
 	"github.com/moby/buildkit/depot/api/cloudv3connect"
 	"github.com/moby/buildkit/exporter"
@@ -50,9 +52,7 @@ import (
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/metadata"
-	"google.golang.org/grpc/peer"
 	"google.golang.org/grpc/status"
 )
 
@@ -357,6 +357,9 @@ func (c *Controller) Solve(ctx context.Context, req *controlapi.SolveRequest) (*
 	atomic.AddInt64(&c.buildCount, 1)
 	defer atomic.AddInt64(&c.buildCount, -1)
 
+	spiffeID := depot.SpiffeFromContext(ctx)
+	bearer := depot.BearerFromEnv()
+
 	// This method registers job ID in solver.Solve. Make sure there are no blocking calls before that might delay this.
 
 	if err := translateLegacySolveRequest(req); err != nil {
@@ -478,7 +481,7 @@ func (c *Controller) Solve(ctx context.Context, req *controlapi.SolveRequest) (*
 		procs = append(procs, proc.ProvenanceProcessor(attrs))
 	}
 
-	resp, err := c.solver.Solve(ctx, req.Ref, req.Session, frontend.SolveRequest{
+	resp, sboms, err := c.solver.Solve(ctx, req.Ref, req.Session, frontend.SolveRequest{
 		Frontend:       req.Frontend,
 		Definition:     req.Definition,
 		FrontendOpt:    req.FrontendAttrs,
@@ -493,23 +496,66 @@ func (c *Controller) Solve(ctx context.Context, req *controlapi.SolveRequest) (*
 	if err != nil {
 		return nil, err
 	}
+
+	// DEPOT: send SBOMs to the API in the background.
+	go func() {
+		if sboms == nil || spiffeID == "" || bearer == "" {
+			return
+		}
+
+		apiSBOMs := []*cloudv3.SBOM{}
+		for _, sbom := range sboms {
+			apiSBOM := &cloudv3.SBOM{
+				Platform: sbom.Platform,
+				SpdxJson: string(sbom.Statement),
+				Digest:   sbom.Digest,
+			}
+			if sbom.Image != nil {
+				apiSBOM.Image = &cloudv3.Image{
+					Name:           sbom.Image.Name,
+					ManifestDigest: sbom.Image.ManifestDigest,
+				}
+			}
+
+			apiSBOMs = append(apiSBOMs, apiSBOM)
+		}
+
+		req := connect.NewRequest(&cloudv3.ReportSBOMRequest{
+			SpiffeId: spiffeID,
+			Sboms:    apiSBOMs,
+		})
+		req.Header().Add("Authorization", bearer)
+
+		attempts := 0
+		for {
+			attempts++
+			_, err := NewDepotClient().ReportSBOM(context.Background(), req)
+			if err == nil {
+				break
+			}
+
+			if attempts > 10 {
+				bklog.G(ctx).WithError(err).Errorf("unable to send SBOM to API, giving up")
+				return
+			}
+
+			bklog.G(ctx).WithError(err).Errorf("unable to send SBOM to API, retrying")
+			time.Sleep(100 * time.Millisecond)
+		}
+	}()
+
 	return &controlapi.SolveResponse{
 		ExporterResponse: resp.ExporterResponse,
 	}, nil
 }
 
 func (c *Controller) Status(req *controlapi.StatusRequest, stream controlapi.Control_StatusServer) error {
-	var spiffeID string
 	ctx := stream.Context()
-	peer, ok := peer.FromContext(ctx)
-	if ok {
-		tlsInfo, ok := peer.AuthInfo.(credentials.TLSInfo)
-		if ok && tlsInfo.SPIFFEID != nil {
-			spiffeID = tlsInfo.SPIFFEID.String()
-		}
-	}
+
+	spiffeID := depot.SpiffeFromContext(ctx)
+	bearer := depot.BearerFromEnv()
+
 	statusCh := make(chan client.SolveStatus, 1024)
-	token := os.Getenv("DEPOT_BUILDKIT_TOKEN")
 
 	if err := sendTimestampHeader(stream); err != nil {
 		return err
@@ -522,12 +568,12 @@ func (c *Controller) Status(req *controlapi.StatusRequest, stream controlapi.Con
 	})
 
 	go func() {
-		if spiffeID == "" || token == "" {
+		if spiffeID == "" || bearer == "" {
 			return
 		}
 
 		sender := NewDepotClient().ReportStatus(context.Background())
-		sender.RequestHeader().Add("Authorization", "Bearer "+token)
+		sender.RequestHeader().Add("Authorization", bearer)
 		defer func() {
 			_, _ = sender.CloseAndReceive()
 		}()
@@ -561,7 +607,7 @@ func (c *Controller) Status(req *controlapi.StatusRequest, stream controlapi.Con
 					time.Sleep(100 * time.Millisecond)
 					_, _ = sender.CloseAndReceive()
 					sender = NewDepotClient().ReportStatus(ctx)
-					sender.RequestHeader().Add("Authorization", "Bearer "+token)
+					sender.RequestHeader().Add("Authorization", bearer)
 				}
 			}
 		}
@@ -577,7 +623,7 @@ func (c *Controller) Status(req *controlapi.StatusRequest, stream controlapi.Con
 			}
 
 			// DEPOT: we need to make a copy because ss.Marshal() mutates the SolveStatus
-			if spiffeID != "" && token != "" && ss != nil {
+			if spiffeID != "" && bearer != "" && ss != nil {
 				select {
 				case statusCh <- *ss:
 				default:
