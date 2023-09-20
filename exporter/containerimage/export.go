@@ -399,9 +399,11 @@ func (e *imageExporterInstance) Export(ctx context.Context, src *exporter.Source
 	// We use this because the garbage collector could remove them before download.
 	if opts.ExportImageVersion == ExportImageVersionV2 {
 		exportedImages := make([]depot.ExportedImage, len(committed))
+		sboms := make([]depot.SBOM, 0, len(committed))
 		for i := range committed {
 			exportedImages[i].Manifest = committed[i].ManifestBytes
 			exportedImages[i].Config = committed[i].ConfigBytes
+			sboms = append(sboms, committed[i].SBOMs...)
 		}
 
 		octets, err := json.Marshal(exportedImages)
@@ -410,6 +412,16 @@ func (e *imageExporterInstance) Export(ctx context.Context, src *exporter.Source
 		}
 
 		resp[depot.ImagesExported] = base64.StdEncoding.EncodeToString(octets)
+
+		if len(sboms) > 0 {
+			resultSBOMs, err := depot.EncodeSBOMs(sboms)
+			if err != nil {
+				return nil, nil, err
+			}
+			if resultSBOMs != "" {
+				resp[depot.SBOMsLabel] = resultSBOMs
+			}
+		}
 	}
 
 	return resp, nil, nil
