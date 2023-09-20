@@ -253,9 +253,15 @@ func (e *ExecOp) Exec(ctx context.Context, g session.Group, inputs []solver.Resu
 		}
 	}
 
+	stableDigests := depot.StableDigests(ctx)
+	vertexDigest := depot.VertexDigest(ctx)
+
 	p, err := gateway.PrepareMounts(ctx, e.mm, e.cm, g, e.op.Meta.Cwd, e.op.Mounts, refs, func(m *pb.Mount, ref cache.ImmutableRef) (cache.MutableRef, error) {
 		desc := fmt.Sprintf("mount %s from exec %s", m.Dest, strings.Join(e.op.Meta.Args, " "))
-		return e.cm.New(ctx, ref, g, cache.WithDescription(desc))
+		return e.cm.New(ctx, ref, g,
+			cache.WithDescription(desc),
+			cache.WithStableDigests(stableDigests),
+			cache.WithVertexDigest(vertexDigest))
 	})
 	defer func() {
 		if err != nil {
@@ -280,6 +286,9 @@ func (e *ExecOp) Exec(ctx context.Context, g session.Group, inputs []solver.Resu
 						err = errors.Wrapf(err, "error committing %s: %s", active.Ref.ID(), cerr)
 						continue
 					}
+					_ = ref.AppendStringSlice("depot.stableDigests", depot.StableDigests(ctx)...)
+					_ = ref.InsertIfNotExists("depot.vertexDigest", depot.VertexDigest(ctx))
+
 					execMounts[active.MountIndex] = worker.NewWorkerRefResult(ref, e.w)
 				}
 			}
@@ -373,6 +382,8 @@ func (e *ExecOp) Exec(ctx context.Context, g session.Group, inputs []solver.Resu
 			if err != nil {
 				return nil, errors.Wrapf(err, "error committing %s", mutable.ID())
 			}
+			_ = ref.AppendStringSlice("depot.stableDigests", depot.StableDigests(ctx)...)
+			_ = ref.InsertIfNotExists("depot.vertexDigest", depot.VertexDigest(ctx))
 			results = append(results, worker.NewWorkerRefResult(ref, e.w))
 		} else {
 			ref := out.Ref.(cache.ImmutableRef)

@@ -75,9 +75,15 @@ func (gs *gitSource) mountRemote(ctx context.Context, remote string, auth []stri
 		return "", nil, errors.Wrapf(err, "failed to search metadata for %s", urlutil.RedactCredentials(remote))
 	}
 
+	stableDigests := depot.StableDigests(ctx)
+	vertexDigest := depot.VertexDigest(ctx)
+
 	var remoteRef cache.MutableRef
 	for _, si := range sis {
-		remoteRef, err = gs.cache.GetMutable(ctx, si.ID())
+		remoteRef, err = gs.cache.GetMutable(ctx, si.ID(),
+			cache.WithStableDigests(stableDigests),
+			cache.WithVertexDigest(vertexDigest),
+		)
 		if err != nil {
 			if errors.Is(err, cache.ErrLocked) {
 				// should never really happen as no other function should access this metadata, but lets be graceful
@@ -91,7 +97,12 @@ func (gs *gitSource) mountRemote(ctx context.Context, remote string, auth []stri
 
 	initializeRepo := false
 	if remoteRef == nil {
-		remoteRef, err = gs.cache.New(ctx, nil, g, cache.CachePolicyRetain, cache.WithDescription(fmt.Sprintf("shared git repo for %s", urlutil.RedactCredentials(remote))))
+		remoteRef, err = gs.cache.New(ctx, nil, g,
+			cache.CachePolicyRetain,
+			cache.WithDescription(fmt.Sprintf("shared git repo for %s", urlutil.RedactCredentials(remote))),
+			cache.WithStableDigests(stableDigests),
+			cache.WithVertexDigest(vertexDigest),
+		)
 		if err != nil {
 			return "", nil, errors.Wrapf(err, "failed to create new mutable for %s", urlutil.RedactCredentials(remote))
 		}
@@ -621,6 +632,7 @@ func (gs *gitSourceHandler) Snapshot(ctx context.Context, g session.Group) (out 
 		return nil, err
 	}
 	_ = snap.AppendStringSlice("depot.stableDigests", stableDigests...)
+	_ = snap.InsertIfNotExists("depot.vertexDigest", vertexDigest)
 	checkoutRef = nil
 
 	defer func() {
