@@ -253,6 +253,8 @@ func (ls *localSourceHandler) snapshot(ctx context.Context, caller session.Calle
 	if err != nil {
 		return nil, err
 	}
+	_ = snap.AppendStringSlice("depot.stableDigests", stableDigests...)
+	_ = snap.InsertIfNotExists("depot.vertexDigest", vertexDigest)
 
 	mutable = nil // avoid deferred cleanup
 
