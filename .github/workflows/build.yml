@@ -35,7 +35,7 @@ env:
 
 jobs:
   base:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest-16-cores
     steps:
       -
         name: Checkout
@@ -69,7 +69,7 @@ jobs:
           CACHE_TO: type=gha,scope=${{ env.CACHE_GHA_SCOPE_IT }}
 
   test:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest-16-cores
     needs: [base]
     strategy:
       fail-fast: false
@@ -133,7 +133,7 @@ jobs:
           path: ./coverage
 
   test-nydus:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest-16-cores
     needs: [base]
     strategy:
       fail-fast: false
@@ -183,7 +183,7 @@ jobs:
           CACHE_FROM: type=gha,scope=${{ env.CACHE_GHA_SCOPE_IT }} type=gha,scope=${{ env.CACHE_GHA_SCOPE_BINARIES }}
 
   test-s3:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest-16-cores
     needs:
       - base
     steps:
@@ -206,7 +206,7 @@ jobs:
           hack/s3_test/run_test.sh
 
   test-azblob:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest-16-cores
     needs:
       - base
     steps:
@@ -268,7 +268,7 @@ jobs:
           path: ./coverage
 
   upload-coverage:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest-16-cores
     needs: [test, test-os]
     steps:
       -
@@ -298,7 +298,7 @@ jobs:
           files: ${{ steps.files.outputs.result }}
 
   cross:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest-16-cores
     steps:
       -
         name: Checkout
@@ -327,7 +327,7 @@ jobs:
           CACHE_TO: type=gha,scope=${{ env.CACHE_GHA_SCOPE_CROSS }}
 
   release-base:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest-16-cores
     outputs:
       tag: ${{ steps.prep.outputs.tag }}
       push: ${{ steps.prep.outputs.push }}
@@ -353,7 +353,7 @@ jobs:
           echo "push=${PUSH}" >>${GITHUB_OUTPUT}
 
   image:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest-16-cores
     needs: [release-base, test, cross]
     strategy:
       fail-fast: false
@@ -396,7 +396,7 @@ jobs:
           CACHE_TO: type=gha,scope=image${{ matrix.target-stage }}
 
   binaries:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest-16-cores
     needs: [release-base, test, cross]
     steps:
       -
@@ -442,7 +442,7 @@ jobs:
           name: ${{ needs.release-base.outputs.tag }}
 
   frontend-base:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest-16-cores
     if: github.event_name != 'schedule'
     outputs:
       typ: ${{ steps.prep.outputs.typ }}
@@ -472,7 +472,7 @@ jobs:
           fi
 
   frontend-image:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest-16-cores
     if: github.event_name != 'schedule'
     needs: [frontend-base, test]
     strategy:
