@@ -24,6 +24,7 @@ import (
 	"github.com/moby/buildkit/worker/base"
 	wlabel "github.com/moby/buildkit/worker/label"
 	ocispecs "github.com/opencontainers/image-spec/specs-go/v1"
+	"github.com/sirupsen/logrus"
 	bolt "go.etcd.io/bbolt"
 	"golang.org/x/sync/semaphore"
 )
@@ -91,6 +92,7 @@ func NewWorkerOpt(root string, snFactory SnapshotterFactory, rootless bool, proc
 	// https://github.com/etcd-io/bbolt/pull/6
 	options.NoFreelistSync = true
 
+	logrus.Info("Opening metadata containerdmeta.go")
 	db, err := bolt.Open(filepath.Join(root, "containerdmeta.db"), 0644, &options)
 	if err != nil {
 		return opt, err
@@ -142,6 +144,7 @@ func NewWorkerOpt(root string, snFactory SnapshotterFactory, rootless bool, proc
 		return opt, err
 	}
 
+	logrus.Info("Opening metadata.db")
 	md, err := metadata.NewStore(filepath.Join(root, "metadata_v2.db"))
 	if err != nil {
 		return opt, err
