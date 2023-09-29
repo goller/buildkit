@@ -676,11 +676,13 @@ func newController(c *cli.Context, cfg *config.Config) (*control.Controller, err
 	frontends["dockerfile.v0"] = forwarder.NewGatewayForwarder(wc, dockerfile.Build)
 	frontends["gateway.v0"] = gateway.NewGatewayFrontend(wc)
 
+	logrus.Info("Opening cache.db")
 	cacheStorage, err := bboltcachestorage.NewStore(filepath.Join(cfg.Root, "cache.db"))
 	if err != nil {
 		return nil, err
 	}
 
+	logrus.Info("Opening history.db")
 	historyDB, err := bbolt.Open(filepath.Join(cfg.Root, "history.db"), 0600, nil)
 	if err != nil {
 		return nil, err

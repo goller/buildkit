@@ -551,6 +551,10 @@ func (c *Controller) Solve(ctx context.Context, req *controlapi.SolveRequest) (*
 
 func (c *Controller) Status(req *controlapi.StatusRequest, stream controlapi.Control_StatusServer) error {
 	ctx := stream.Context()
+	bklog.G(ctx).WithField("ref", req.Ref).Info("Build status started")
+	defer func() {
+		bklog.G(ctx).WithField("ref", req.Ref).Info("Build status finished")
+	}()
 
 	spiffeID := depot.SpiffeFromContext(ctx)
 	bearer := depot.BearerFromEnv()
