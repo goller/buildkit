@@ -12,6 +12,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/containerd/containerd/pkg/seed"
@@ -664,33 +665,59 @@ func newController(c *cli.Context, cfg *config.Config) (*control.Controller, err
 		}
 	}
 
-	wc, err := newWorkerController(c, workerInitializerOpt{
-		config:         cfg,
-		sessionManager: sessionManager,
-		traceSocket:    traceSocket,
-	})
-	if err != nil {
-		return nil, err
+	// DEPOT: Concurrently open all bolt databases.
+	var (
+		workerController    *worker.Controller
+		workerControllerErr error
+
+		cacheStorage    *bboltcachestorage.Store
+		cacheStorageErr error
+
+		historyDB    *bbolt.DB
+		historyDBErr error
+	)
+
+	wg := sync.WaitGroup{}
+	wg.Add(3)
+
+	go func() {
+		workerController, workerControllerErr = newWorkerController(c, workerInitializerOpt{
+			config:         cfg,
+			sessionManager: sessionManager,
+			traceSocket:    traceSocket,
+		})
+		wg.Done()
+	}()
+	go func() {
+		logrus.Info("Opening cache.db")
+		cacheStorage, cacheStorageErr = bboltcachestorage.NewStore(filepath.Join(cfg.Root, "cache.db"))
+		wg.Done()
+	}()
+	go func() {
+		logrus.Info("Opening history.db")
+		historyDB, historyDBErr = bbolt.Open(filepath.Join(cfg.Root, "history.db"), 0600, nil)
+		wg.Done()
+	}()
+
+	wg.Wait()
+
+	if workerControllerErr != nil {
+		return nil, workerControllerErr
 	}
+	if cacheStorageErr != nil {
+		return nil, cacheStorageErr
+	}
+	if historyDBErr != nil {
+		return nil, historyDBErr
+	}
+
 	frontends := map[string]frontend.Frontend{}
-	frontends["dockerfile.v0"] = forwarder.NewGatewayForwarder(wc, dockerfile.Build)
-	frontends["gateway.v0"] = gateway.NewGatewayFrontend(wc)
-
-	logrus.Info("Opening cache.db")
-	cacheStorage, err := bboltcachestorage.NewStore(filepath.Join(cfg.Root, "cache.db"))
-	if err != nil {
-		return nil, err
-	}
-
-	logrus.Info("Opening history.db")
-	historyDB, err := bbolt.Open(filepath.Join(cfg.Root, "history.db"), 0600, nil)
-	if err != nil {
-		return nil, err
-	}
+	frontends["dockerfile.v0"] = forwarder.NewGatewayForwarder(workerController, dockerfile.Build)
+	frontends["gateway.v0"] = gateway.NewGatewayFrontend(workerController)
 
 	resolverFn := resolverFunc(cfg)
 
-	w, err := wc.GetDefault()
+	worker, err := workerController.GetDefault()
 	if err != nil {
 		return nil, err
 	}
@@ -704,7 +731,7 @@ func newController(c *cli.Context, cfg *config.Config) (*control.Controller, err
 		"azblob":   azblob.ResolveCacheExporterFunc(),
 	}
 	remoteCacheImporterFuncs := map[string]remotecache.ResolveCacheImporterFunc{
-		"registry": registryremotecache.ResolveCacheImporterFunc(sessionManager, w.ContentStore(), resolverFn),
+		"registry": registryremotecache.ResolveCacheImporterFunc(sessionManager, worker.ContentStore(), resolverFn),
 		"local":    localremotecache.ResolveCacheImporterFunc(sessionManager),
 		"gha":      gha.ResolveCacheImporterFunc(),
 		"s3":       s3remotecache.ResolveCacheImporterFunc(),
@@ -712,7 +739,7 @@ func newController(c *cli.Context, cfg *config.Config) (*control.Controller, err
 	}
 	return control.NewController(control.Opt{
 		SessionManager:            sessionManager,
-		WorkerController:          wc,
+		WorkerController:          workerController,
 		Frontends:                 frontends,
 		ResolveCacheExporterFuncs: remoteCacheExporterFuncs,
 		ResolveCacheImporterFuncs: remoteCacheImporterFuncs,
@@ -720,8 +747,8 @@ func newController(c *cli.Context, cfg *config.Config) (*control.Controller, err
 		Entitlements:              cfg.Entitlements,
 		TraceCollector:            tc,
 		HistoryDB:                 historyDB,
-		LeaseManager:              w.LeaseManager(),
-		ContentStore:              w.ContentStore(),
+		LeaseManager:              worker.LeaseManager(),
+		ContentStore:              worker.ContentStore(),
 		HistoryConfig:             cfg.History,
 	})
 }
